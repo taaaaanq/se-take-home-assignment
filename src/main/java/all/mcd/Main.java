@@ -18,8 +18,8 @@ public class Main extends Application {
         launch(args);
     }
 
-    int orderCounter = 0;
-    int botCounter = 0;
+    private int orderCounter = 0;
+    private int botCounter = 0;
     private final ObservableList<Order> pendingOrders = FXCollections.observableArrayList();
     private final ObservableList<Order> completedOrders = FXCollections.observableArrayList();
     private final ObservableList<Thread> workingBot = FXCollections.observableArrayList();
@@ -45,33 +45,28 @@ public class Main extends Application {
         Label completedLabel = new Label("Completed");
         completedLabel.setStyle("-fx-font-size: 16");
 
-        TableView<Order> pendingTable = new TableView<>();
-
+        //Table setup for pending order
+        TableView<Order> pendingTable = new TableView<>(pendingOrders);
         TableColumn<Order, Integer> pendingIdCol = new TableColumn<>("Order ID");
         TableColumn<Order, String> pendingRoleCol = new TableColumn<>("Role");
-
         pendingIdCol.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().getId()));
         pendingRoleCol.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().getRole()));
-
         pendingTable.getColumns().addAll(pendingIdCol, pendingRoleCol);
-        pendingTable.setItems(pendingOrders);
 
-
-        TableView<Order> completedTable = new TableView<>();
-
+        //Table setup for completed order
+        TableView<Order> completedTable = new TableView<>(completedOrders);
         TableColumn<Order, Integer> completedIdCol2 = new TableColumn<>("Order ID");
         TableColumn<Order, String> completedRoleCol2 = new TableColumn<>("Role");
-
         completedIdCol2.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().getId()));
         completedRoleCol2.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().getRole()));
-
         completedTable.getColumns().addAll(completedIdCol2, completedRoleCol2);
-        completedTable.setItems(completedOrders);
 
+        //Create box for ordering buttons
         HBox orderControlPanel = new HBox(10);
         orderControlPanel.setAlignment(Pos.CENTER);
         root.getChildren().add(orderControlPanel);
 
+        //Setup order button for both customer and VIP
         Button normalOrderButton = new Button("Order");
         orderControlPanel.getChildren().add(normalOrderButton);
         Button VIPOrderButton = new Button("VIP Order");
@@ -83,6 +78,7 @@ public class Main extends Application {
         });
 
         VIPOrderButton.setOnAction(event -> {
+            //place VIP order at correct spot
             for (Order order : pendingOrders) {
                 if (!order.getRole().equals("VIP")) {
                     orderCounter++;
@@ -95,6 +91,7 @@ public class Main extends Application {
             orderCounter++;
         });
 
+        //Table placement
         customerGrid.add(pendingLabel, 0, 0);
         customerGrid.add(completedLabel, 1, 0);
         customerGrid.add(pendingTable, 0, 1);
@@ -107,9 +104,9 @@ public class Main extends Application {
         Label botCount = new Label("0 Bot Working");
         root.getChildren().add(botCount);
 
-        HBox botControlPanel = new HBox();
+        //Create box for Bots button
+        HBox botControlPanel = new HBox(10);
         botControlPanel.setAlignment(Pos.CENTER);
-        botControlPanel.setSpacing(10);
         root.getChildren().add(botControlPanel);
 
         Button addBotButton = new Button("Add Bot");
@@ -136,16 +133,21 @@ public class Main extends Application {
             }
         });
 
+        //Setup UI
         Scene scene = new Scene(root,700,600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("MCD");
         primaryStage.show();
     }
 
+    //Setup bot behaviour
     private void runBot(int botID){
+
+        //Infinitely run as long as bot is not destroyed
         while (!Thread.currentThread().isInterrupted()) {
             Order orderToCook = null;
 
+            //find unprocessed order
             for (Order order : pendingOrders) {
                 if (!order.isCooking()){
                     orderToCook = order;
@@ -154,6 +156,7 @@ public class Main extends Application {
                 }
             }
 
+            //process the unfinished order
             if (orderToCook != null) {
                 try{
                     Thread.sleep(10000);
@@ -166,6 +169,7 @@ public class Main extends Application {
                 }
             }
 
+            //rest between loop to prevent resources waste
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
